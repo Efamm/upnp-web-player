@@ -163,9 +163,9 @@ This way, **Levels 1–3 stay focused** while Level 4 is a wishlist of cool but 
 # 🎯 Side Quest
 
 * ✅ Create GitHub Account – Done
-* ⏳ Upload the code to GitHub
-* ⏳ Learn how to use GitHub (basics: repos, commits, branches, pull requests)
-* ⏳ Learn how to sync code from laptop → GitHub (push changes)
+* ✅ Upload the code to GitHub
+* ✅ Learn how to use GitHub (basics: repos, commits, branches, pull requests)
+* ✅ Learn how to sync code from laptop → GitHub (push changes)
 
 ---
 
