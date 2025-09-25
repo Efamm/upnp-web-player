@@ -29,48 +29,106 @@ async function loadServers() {
   }
 }
 
+let pathStack = []; // keep track of folder path
 
-async function selectServer({ id, objectId = '0' }) {
+async function selectServer({ id, objectId = '0', page = 0, pageSize = 100, parentId = null }) {
   currentServerId = id;
   filesDiv.innerHTML = '<p>Loading files...</p>';
+
   try {
-    const res = await fetch(`/api/browse?serverId=${id}&objectId=${objectId}`);
-    const data = await res.json();
-    console.log('Raw browse response:', data);
+    let allFiles = [];
+    let startIndex = 0;
+    const batchSize = 50; // many UPnP servers return max 50 items per request
 
-    // Explicitly tag containers as folders
-    const files = [
-      ...(data.containers || []).map(folder => ({ ...folder, isFolder: true })),
-      ...(data.items || []).map(item => ({ ...item, isFolder: false }))
-    ];
-    console.log('Flattened files:', files);
+    while (true) {
+      const res = await fetch(`/api/browse?serverId=${id}&objectId=${objectId}&startIndex=${startIndex}&requestedCount=${batchSize}`);
+      const data = await res.json();
 
+      const filesBatch = [
+        ...(data.containers || []).map(f => ({ ...f, isFolder: true })),
+        ...(data.items || []).map(i => ({ ...i, isFolder: false }))
+      ];
 
-    if (files.length === 0) {
+      allFiles = allFiles.concat(filesBatch);
+
+      // Stop if no more items
+      if (!data.numberReturned || allFiles.length >= (data.totalMatches || allFiles.length)) break;
+
+      startIndex += data.numberReturned;
+    }
+
+    if (allFiles.length === 0) {
       filesDiv.innerHTML = '<p>No media files found.</p>';
       return;
     }
 
     filesDiv.innerHTML = '';
-    files.forEach(file => {
-      const btn = document.createElement('button');
-      btn.textContent = file.title;
 
+    // Add Up Folder button if not root
+    if (objectId !== '0') {
+      const upBtn = document.createElement('button');
+      upBtn.textContent = '⬆️ Up';
+      upBtn.onclick = () => selectServer({ id, objectId: parentId || data.parentID || '0' });
+      filesDiv.appendChild(upBtn);
+    }
+
+    // Pagination: display only current page
+    const start = page * pageSize;
+    const end = Math.min(start + pageSize, allFiles.length);
+    const filesPage = allFiles.slice(start, end);
+
+    filesPage.forEach(file => {
+      const btn = document.createElement('button');
+      btn.textContent = `${getFileIcon(file)} ${file.title}`;
       if (file.isFolder) {
-        // Folder click → browse inside
-        btn.onclick = () => selectServer({ id, objectId: file.id });
+        btn.onclick = () => selectServer({ id, objectId: file.id, parentId: objectId });
       } else {
-        // File click → play media
         btn.onclick = () => playFile(id, file.res);
       }
-
       filesDiv.appendChild(btn);
     });
+
+    // Pagination buttons
+    if (end < allFiles.length) {
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = 'Next Page →';
+      nextBtn.onclick = () => selectServer({ id, objectId, page: page + 1, parentId });
+      filesDiv.appendChild(nextBtn);
+    }
+    if (page > 0) {
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = '← Previous Page';
+      prevBtn.onclick = () => selectServer({ id, objectId, page: page - 1, parentId });
+      filesDiv.insertBefore(prevBtn, filesDiv.firstChild.nextSibling); // after Up button
+    }
+
   } catch (err) {
     filesDiv.innerHTML = '<p>Error loading files.</p>';
     console.error('Error browsing files:', err);
   }
 }
+
+
+// Utility function for file icons
+function getFileIcon(file) {
+  if (file.isFolder) return '📁';
+  if (file.res) {
+    const url = file.res.toLowerCase();
+    // Check URL or "pn=" parameter for type
+    const pnMatch = url.match(/pn=([a-z0-9_]+)/i);
+    const mimeHint = pnMatch ? pnMatch[1].toLowerCase() : '';
+
+    if (/\.mp4|\.mkv|\.avi|\.mov/.test(url) || mimeHint.includes('mp4') || mimeHint.includes('video')) return '🎬';
+    if (/\.mp3|\.wav|\.flac/.test(url) || mimeHint.includes('mp3') || mimeHint.includes('audio')) return '🎵';
+    if (/\.jpg|\.jpeg|\.png|\.gif/.test(url) || mimeHint.includes('image')) return '🖼️';
+  }
+  return '📄';
+}
+
+
+
+
+
 
 
 

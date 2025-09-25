@@ -14,15 +14,15 @@
 * Increase size of files list (use more screen space).
 * Reduce heading size (cleaner layout).
 * Resizable player (drag to resize width/height).
-* **“Up Folder” button** → one click to go to parent folder.
+* ~~**“Up Folder” button** → one click to go to parent folder.~~ ✅Done
 
-  * Should always appear at top of file list when not in root.
-  * Example: ⬆ Up button that navigates to parentID.
-* Folder / File icons → visually distinguish content.
+  * ~~Should always appear at top of file list when not in root.~~ ✅Done
+  * ~~Example: ⬆ Up button that navigates to parentID.~~ ✅Done
+* ~~Folder / File icons → visually distinguish content.~~ ✅Done
 
-  * Folder 📁 icon for containers.
-  * Video 🎬, audio 🎵, image 🖼️ icons depending on MIME type.
-* **Auto play next song/video** → when current file ends, automatically start the next one in the list.
+  * ~~Folder 📁 icon for containers.~~ ✅Done
+  * ~~Video 🎬, audio 🎵, image 🖼️ icons depending on MIME type.~~ ✅Done
+* ~~**Auto play next song/video** → when current file ends, automatically start the next one in the list.~~ ✅Done
 
 ---
 
